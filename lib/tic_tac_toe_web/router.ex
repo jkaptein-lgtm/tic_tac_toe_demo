@@ -17,7 +17,7 @@ defmodule TicTacToeWeb.Router do
   scope "/", TicTacToeWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live "/", GameLive
   end
 
   # Other scopes may use custom stacks.
