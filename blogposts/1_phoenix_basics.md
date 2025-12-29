@@ -16,10 +16,10 @@ Je kunt de versie van de game zoals hij is op het einde van deze demo vinden in 
 
 ## Het opzetten van een nieuw project
 
-Als je [Elixir](https://elixir-lang.org/install.html) en [Phoenix](https://hexdocs.pm/phoenix/installation.html) geïnstalleerd hebt, is het starten van een nieuw project simpel. Omdat de hele game in het geheugen draait, hebben we geen database nodig. We gebruiken daarom de `--no-ecto` flag; dit zorgt ervoor dat er geen setup wordt gedaan voor een database.
+Als je [Elixir](https://elixir-lang.org/install.html) en [Phoenix](https://hexdocs.pm/phoenix/installation.html) geïnstalleerd hebt, is het starten van een nieuw project simpel. Omdat de hele game in het geheugen draait, hebben we geen database nodig. We gebruiken daarom de `--no-ecto` flag; dit zorgt ervoor dat er geen setup wordt gedaan voor een database. Ook de mailer hebben we niet nodig.
 
 ```bash
-mix phx.new tic_tac_toe --no-ecto
+mix phx.new tic_tac_toe --no-ecto --no-mailer
 mix deps.get
 ```
 
