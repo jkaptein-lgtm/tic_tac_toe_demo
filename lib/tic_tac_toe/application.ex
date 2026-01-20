@@ -14,7 +14,8 @@ defmodule TicTacToe.Application do
       # Start a worker by calling: TicTacToe.Worker.start_link(arg)
       # {TicTacToe.Worker, arg},
       # Start to serve requests, typically the last entry
-      TicTacToeWeb.Endpoint
+      TicTacToeWeb.Endpoint,
+      {TicTacToe.GameServer, name: TicTacToe.GameServer}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
