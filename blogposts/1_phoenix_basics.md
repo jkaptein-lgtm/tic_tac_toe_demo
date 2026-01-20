@@ -80,7 +80,7 @@ defmodule TicTacToe.Game do
       :draw
   """
   def result?(board) do
-    case winner(board) do
+    case winner?(board) do
       nil ->
         if Enum.all?(board) do
           :draw
@@ -93,7 +93,7 @@ defmodule TicTacToe.Game do
     end
   end
 
-  defp winner(board) do
+  defp winner?(board) do
     cols = board |> Enum.chunk_every(3)
     r1 = board |> Enum.take_every(3)
     r2 = board |> Enum.drop(1) |> Enum.take_every(3)
@@ -295,15 +295,12 @@ We kunnen nu het aanmaken van het bord verwijderen uit de renderfunctie:
  def render(assigns) do
 -  assigns =
 -    assigns
--    |> assign(:board, Game.empty_board)
+-    |> assign(:board, Game.empty_board())
 
    ~H"""
    <Layouts.app flash={@flash}>
 
--    <%= if is_list(assigns.board) do %>
--      <.board board={@board} />
--    <% end %>
-+    <%= if is_list(@board) do %>
+     <%= if is_list(@board) do %>
        <.board board={@board} />
      <% end %>
 
@@ -327,7 +324,7 @@ Nu gebeurt er als je op de knoppen drukt nog niets. Om daar verandering in te br
      class="btn"
      disabled={not is_nil(Enum.at(@board, idx))}
    >
-     {cell_label(Enum.at(@board, idx) || @placeholder)}
+     {cell_label(Enum.at(@board, idx) || @active_player)}
    </button>
  </td>
  ...
@@ -369,7 +366,7 @@ Het spel is nu volledig speelbaar, maar we doen nog niets als het spel afgelopen
 +   <%= if @outcome do %>
 +     <.outcome outcome={@outcome} />
 +   <% end %>
-    <%= if is_list(assigns.board) do %>
+    <%= if is_list(@board) do %>
       <.board board={@board} outcome={@outcome} />
     <% end %>
   </Layouts.app>
@@ -398,7 +395,7 @@ defp board(assigns) do
                   phx-value-index={idx}
                   disabled={not is_nil(@outcome) or not is_nil(Enum.at(@board, idx))}
                 >
-                  {cell_label(Enum.at(@board, idx) || @placeholder)}
+                  {cell_label(Enum.at(@board, idx) || @active_player)}
                 </button>
 ...
 ```
