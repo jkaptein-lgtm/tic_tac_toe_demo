@@ -47,7 +47,6 @@ defmodule TicTacToe.GameServer do
   end
 
   defp activate_players(%{players: [x_pid, o_pid], board: board} = state) do
-    IO.inspect(board, label: "board when activating players")
 
     {active, waiting} =
       case Game.active_player(board) do
