@@ -35,22 +35,23 @@ defmodule TicTacToeWeb.GameLive do
   def render(assigns) do
     assigns =
       assigns
-      |> assign(:outcome, Game.result?(assigns.board))
+      |> assign(
+        :status,
+        Game.result?(assigns.board) || {:taking_turn, Game.active_player(assigns.board)}
+      )
 
     ~H"""
     <Layouts.app flash={@flash}>
-      <%= if @outcome do %>
-        <.outcome outcome={@outcome} />
-      <% end %>
+      <.status status={@status} />
       <%= if is_list(assigns.board) do %>
-        <.board board={@board} outcome={@outcome} />
+        <.board board={@board} status={@status} />
       <% end %>
       <button
         type="button"
         class="btn"
         phx-click="restart"
       >
-         restart
+        restart
       </button>
     </Layouts.app>
     """
@@ -60,7 +61,6 @@ defmodule TicTacToeWeb.GameLive do
     assigns =
       assigns
       |> assign(:active_player, Game.active_player(assigns.board))
-
 
     ~H"""
     <table class="w-full table-fixed border-separate border-spacing-2">
@@ -75,7 +75,9 @@ defmodule TicTacToeWeb.GameLive do
                   phx-click="choose"
                   class="btn"
                   phx-value-index={idx}
-                  disabled={ not is_nil(@outcome) or not is_nil(Enum.at(@board, idx))}
+                  disabled={
+                    not match?({:taking_turn, _}, @status) or not is_nil(Enum.at(@board, idx))
+                  }
                 >
                   {cell_label(Enum.at(@board, idx) || @active_player)}
                 </button>
@@ -88,19 +90,19 @@ defmodule TicTacToeWeb.GameLive do
     """
   end
 
-  defp outcome(assigns) do
-
+  defp status(assigns) do
     ~H"""
     <div class="mt-4 text-center text-lg font-semibold">
-      <%= case @outcome do %>
-        <% {:win, player} -> %>
-          Winner: {player |> Atom.to_string() |> String.upcase()}
-        <% :draw -> %>
-          Draw
-      <% end %>
+      {message(@status)}
     </div>
     """
   end
+
+  defp message({:taking_turn, player}),
+    do: "#{player |> Atom.to_string() |> String.upcase()}'s turn"
+
+  defp message({:win, player}), do: "Winner: #{player |> Atom.to_string() |> String.upcase()}"
+  defp message(:draw), do: "Draw!"
 
   defp cell_label(nil), do: ""
   defp cell_label(player) when is_atom(player), do: player |> Atom.to_string() |> String.upcase()
