@@ -11,11 +11,11 @@ defmodule TicTacToe.Application do
       TicTacToeWeb.Telemetry,
       {DNSCluster, query: Application.get_env(:tic_tac_toe, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: TicTacToe.PubSub},
-      # Start a worker by calling: TicTacToe.Worker.start_link(arg)
-      # {TicTacToe.Worker, arg},
+      # Start the game session registry and supervisor
+      TicTacToe.GameRegistry,
+      TicTacToe.GameSessionSupervisor,
       # Start to serve requests, typically the last entry
-      TicTacToeWeb.Endpoint,
-      {TicTacToe.GameServer, name: TicTacToe.GameServer}
+      TicTacToeWeb.Endpoint
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

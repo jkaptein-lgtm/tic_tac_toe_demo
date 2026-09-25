@@ -18,6 +18,7 @@ defmodule TicTacToeWeb.Router do
     pipe_through :browser
 
     live "/", GameLive
+    live "/game/:session_id", GameLive
   end
 
   # Other scopes may use custom stacks.

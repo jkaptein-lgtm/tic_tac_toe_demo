@@ -12,34 +12,32 @@ defmodule TicTacToe.GameServer do
 
   alias TicTacToe.Game
 
+  alias TicTacToe.GameRegistry
+
   # Client
-  def join() do
-    GenServer.call(__MODULE__, :join)
+  def join(session_id) do
+    GenServer.call(GameRegistry.via(session_id), :join)
   end
 
-  def choose(location) do
-    GenServer.call(__MODULE__, {:choose, location})
+  def choose(session_id, location) do
+    GenServer.call(GameRegistry.via(session_id), {:choose, location})
   end
 
-  def restart() do
-    GenServer.cast(__MODULE__, :restart)
+  def restart(session_id) do
+    GenServer.cast(GameRegistry.via(session_id), :restart)
   end
 
-  def start_link(opts \\ Keyword.new()) do
-    GenServer.start_link(__MODULE__, :ok, opts)
+  def start_link(session_id) do
+    GenServer.start_link(__MODULE__, session_id, name: GameRegistry.via(session_id))
   end
 
-  def disconnect() do
-    GenServer.cast(__MODULE__, {:disconnect, self()})
-  end
-
-  def kill() do
-    GenServer.stop(__MODULE__)
+  def disconnect(session_id) do
+    GenServer.cast(GameRegistry.via(session_id), {:disconnect, self()})
   end
 
   @impl true
-  def init(_) do
-    {:ok, %{players: [], board: [nil, nil, nil, nil, nil, nil, nil, nil, nil]}}
+  def init(session_id) do
+    {:ok, %{session_id: session_id, players: [], board: [nil, nil, nil, nil, nil, nil, nil, nil, nil]}}
   end
 
   defp pid_to_symbol(players, pid) do
