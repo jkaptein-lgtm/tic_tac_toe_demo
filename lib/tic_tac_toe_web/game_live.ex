@@ -37,21 +37,19 @@ defmodule TicTacToeWeb.GameLive do
       assigns
       |> assign(
         :status,
-        Game.result?(assigns.board) || {:taking_turn, Game.active_player(assigns.board)}
+        Game.result(assigns.board) || {:taking_turn, Game.active_player(assigns.board)}
       )
 
     ~H"""
     <Layouts.app flash={@flash}>
       <.status status={@status} />
-      <%= if is_list(assigns.board) do %>
-        <.board board={@board} status={@status} />
-      <% end %>
+      <.board board={@board} status={@status} />
       <button
         type="button"
         class="btn"
         phx-click="restart"
       >
-        restart
+        Restart
       </button>
     </Layouts.app>
     """

@@ -24,25 +24,25 @@ defmodule TicTacToe.Game do
 
   ## Examples
 
-      iex> result?([
+      iex> result([
       ...>   :x, :x, :x,
       ...>   :o, nil, nil,
       ...>   :o, :o, nil
       ...> ])
       {:win, :x}
 
-      iex> result?(empty_board())
+      iex> result(empty_board())
       nil
 
-      iex> result?([
+      iex> result([
       ...>   :x, :o, :x,
       ...>   :x, :x, :o,
       ...>   :o, :x, :o
       ...> ])
       :draw
   """
-  def result?(board) do
-    case winner?(board) do
+  def result(board) do
+    case winner(board) do
       nil ->
         if Enum.all?(board) do
           :draw
@@ -55,20 +55,20 @@ defmodule TicTacToe.Game do
     end
   end
 
-  defp winner?(board) do
-    cols = board |> Enum.chunk_every(3)
-    r1 = board |> Enum.take_every(3)
-    r2 = board |> Enum.drop(1) |> Enum.take_every(3)
-    r3 = board |> Enum.drop(2) |> Enum.take_every(3)
+  defp winner(board) do
+    rows = board |> Enum.chunk_every(3)
+    c1 = board |> Enum.take_every(3)
+    c2 = board |> Enum.drop(1) |> Enum.take_every(3)
+    c3 = board |> Enum.drop(2) |> Enum.take_every(3)
     diag1 = [board |> Enum.at(0), board |> Enum.at(4), board |> Enum.at(8)]
     diag2 = [board |> Enum.at(2), board |> Enum.at(4), board |> Enum.at(6)]
 
     lines =
-      cols ++
+      rows ++
         [
-          r1,
-          r2,
-          r3,
+          c1,
+          c2,
+          c3,
           diag1,
           diag2
         ]

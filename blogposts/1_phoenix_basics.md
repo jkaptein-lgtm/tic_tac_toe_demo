@@ -8,11 +8,11 @@ Fase 3: het ondersteunen van meerdere game-sessies binnen de server. Zo leren we
 
 In deze eerste versie van de app spelen beide spelers op hetzelfde scherm (lokale multiplayer). Omdat we met Phoenix werken, gaat iedere actie wel terug naar de server en vindt de logica daar plaats! Dit voelt misschien wat gek, maar er zijn zeker wat voordelen aan deze manier van werken.
 
-* Voor zware operaties ben je niet afhankelijk van de performance van het apparaat waarop de website gebruikt wordt.
-* De server is een "vertrouwde plek"; als ontwikkelaar moet je altijd voorzichtig zijn met data en operaties die in de browser uitgevoerd worden; een gebruiker of zelfs een derde partij kunnen vrij makkelijk data of logica in de browser manipuleren; zolang je server niet gehackt wordt, weet je dat wat daar gebeurt precies is zoals je het zelf hebt geschreven.
-* Doordat je logica laat plaatsvinden op de server, kunnen we van onze vertrouwde backend-taal gebruikmaken. Dat maakt het makkelijk om logica te hergebruiken. Je zou er natuurlijk ook voor kunnen kiezen om via Node gebruik te maken van JavaScript op de server. Waarom we graag gebruikmaken van Elixir lees je [hier](https://www.yipyip.nl/expertise/elixir-ontwikkelaar).
+- Voor zware operaties ben je niet afhankelijk van de performance van het apparaat waarop de website gebruikt wordt.
+- De server is een "vertrouwde plek"; als ontwikkelaar moet je altijd voorzichtig zijn met data en operaties die in de browser uitgevoerd worden; een gebruiker of zelfs een derde partij kunnen vrij makkelijk data of logica in de browser manipuleren; zolang je server niet gehackt wordt, weet je dat wat daar gebeurt precies is zoals je het zelf hebt geschreven.
+- Doordat je logica laat plaatsvinden op de server, kunnen we van onze vertrouwde backend-taal gebruikmaken. Dat maakt het makkelijk om logica te hergebruiken. Je zou er natuurlijk ook voor kunnen kiezen om via Node gebruik te maken van JavaScript op de server. Waarom we graag gebruikmaken van Elixir lees je [hier](https://www.yipyip.nl/expertise/elixir-ontwikkelaar).
 
-Je kunt de versie van de game zoals hij is op het einde van deze demo vinden in [deze commit](https://github.com/jkaptein-lgtm/tic_tac_toe_demo/commit/6ab2a6c3cb31b5f6c52ce1c9f9827dbe28e92354).
+Je kunt de versie van de game zoals hij is op het einde van deze demo vinden in [deze commit](https://github.com/jkaptein-lgtm/tic_tac_toe_demo/tree/post_1).
 
 ## Het opzetten van een nieuw project
 
@@ -62,25 +62,25 @@ defmodule TicTacToe.Game do
 
   ## Examples
 
-      iex> result?([
+      iex> result([
       ...>   :x, :x, :x,
       ...>   :o, nil, nil,
       ...>   :o, :o, nil
       ...> ])
       {:win, :x}
 
-      iex> result?(empty_board())
+      iex> result(empty_board())
       nil
 
-      iex> result?([
+      iex> result([
       ...>   :x, :o, :x,
       ...>   :x, :x, :o,
       ...>   :o, :x, :o
       ...> ])
       :draw
   """
-  def result?(board) do
-    case winner?(board) do
+  def result(board) do
+    case winner(board) do
       nil ->
         if Enum.all?(board) do
           :draw
@@ -93,20 +93,20 @@ defmodule TicTacToe.Game do
     end
   end
 
-  defp winner?(board) do
-    cols = board |> Enum.chunk_every(3)
-    r1 = board |> Enum.take_every(3)
-    r2 = board |> Enum.drop(1) |> Enum.take_every(3)
-    r3 = board |> Enum.drop(2) |> Enum.take_every(3)
+  defp winner(board) do
+    rows = board |> Enum.chunk_every(3)
+    c1 = board |> Enum.take_every(3)
+    c2 = board |> Enum.drop(1) |> Enum.take_every(3)
+    c3 = board |> Enum.drop(2) |> Enum.take_every(3)
     diag1 = [board |> Enum.at(0), board |> Enum.at(4), board |> Enum.at(8)]
     diag2 = [board |> Enum.at(2), board |> Enum.at(4), board |> Enum.at(6)]
 
     lines =
-      cols ++
+      rows ++
         [
-          r1,
-          r2,
-          r3,
+          c1,
+          c2,
+          c3,
           diag1,
           diag2
         ]
@@ -178,11 +178,12 @@ end
 
 Vervolgens gaan we de pagina maken waarop je het spel speelt; een LiveView pagina bestaat uit 1 bestand in de `..._web` map. Maak het volgende bestand aan: `lib/tic_tac_toe_web/game_live.ex`.
 
-```
+```elixir
 defmodule TicTacToeWeb.GameLive do
-end 
-```
+  use TicTacToeWeb, :live_view
 
+end
+```
 
 We registreren deze pagina ook in de router, in `lib/tic_tac_toe_web/router.ex`. Vervang het `get` endpoint dat nu de home page served met een `live` endpoint dat naar de GameLive module verwijst, bijvoorbeeld:
 
@@ -193,20 +194,20 @@ We registreren deze pagina ook in de router, in `lib/tic_tac_toe_web/router.ex`.
 
 Doordat we gebruikmaken van de `live_view`-macro, implementeert onze pagina het [Phoenix.LiveView](https://hexdocs.pm/phoenix_live_view/1.1.19/Phoenix.LiveView.html) behaviour, waarvan voor nu 3 callbacks relevant zijn:
 
-* `mount(params, session, socket)`: Zorgt ervoor dat de pagina wordt geïnitialiseerd als hij geladen wordt.
-* `render(assigns)`: Bepaalt hoe de pagina wordt weergegeven
-* `handle_event`: Bepaalt hoe de server reageert op berichten die vanuit de client gestuurd worden.
+- `mount(params, session, socket)`: Zorgt ervoor dat de pagina wordt geïnitialiseerd als hij geladen wordt.
+- `render(assigns)`: Bepaalt hoe de pagina wordt weergegeven
+- `handle_event(event)`: Bepaalt hoe de server reageert op berichten die vanuit de client gestuurd worden.
 
-`mount` is de enige functie die verplicht geïmplementeerd moet worden, dus we beginnen daarmee. Voor het renderen van pagina's maakt Phoenix gebruik van [HEEX templates](https://hexdocs.pm/phoenix_live_view/assigns-eex.html); hiermee kun je HTML direct in je code verwerken. De syntax spreekt redelijk voor zich; het enige wat belangrijk is om te weten is dat, om het verwerken van updates in de pagina's mogelijk te maken, je géén gebruik moet maken van variabelen, maar van `assigns`. Assigns zijn een belangrijk concept binnen Phoenix LiveView; naast het gebruik binnen de templating wordt het gebruikt om data te delen tussen de client en server.
+`render` is de enige functie die verplicht geïmplementeerd moet worden, dus we beginnen daarmee. Voor het renderen van pagina's maakt Phoenix gebruik van [HEEX templates](https://hexdocs.pm/phoenix_live_view/assigns-eex.html); hiermee kun je HTML direct in je code verwerken. De syntax spreekt redelijk voor zich; het enige wat belangrijk is om te weten is dat, om het verwerken van updates in de pagina's mogelijk te maken, je géén gebruik moet maken van variabelen, maar van `assigns`. Assigns zijn een belangrijk concept binnen Phoenix LiveView; naast het gebruik binnen de templating wordt het gebruikt om data te delen tussen de client en server.
 
 We voegen ook een alias toe voor TicTacToe.Game:
 
 ```diff
  defmodule TicTacToeWeb.GameLive do
-+  use TicTacToeWeb, :live_view
+   use TicTacToeWeb, :live_view
 +
 +  alias TicTacToe.Game
- end 
+ end
 ```
 
 Vervolgens voegen we een component toe voor het weergeven van het bord. Ieder veld in het bord is een knop; als het veld geclaimd is door een gebruiker is de knop uitgeschakeld en toont het symbool van die speler. Alle andere knoppen zijn actief en laten het symbool zien van de actieve speler:
@@ -245,7 +246,7 @@ defmodule TicTacToeWeb.GameLive do
 
   defp cell_label(nil), do: ""
   defp cell_label(player) when is_atom(player), do: player |> Atom.to_string() |> String.upcase()
-end 
+end
 ```
 
 Om het speelveld weer te geven, voegen we de renderfunctie toe, die onze `board` component aanroept. Voor nu geven we altijd een leeg bord weer.
@@ -259,9 +260,7 @@ def render(assigns) do
   ~H"""
   <Layouts.app flash={@flash}>
 
-    <%= if is_list(@board) do %>
-      <.board board={@board} />
-    <% end %>
+    <.board board={@board} />
 
   </Layouts.app>
   """
@@ -271,7 +270,6 @@ end
 Als je de server draait met `mix phx.server`, zul je nu op localhost:4000 het bord kunnen zien:
 
 ![de pagina met een statisch bord](attachments/first_render.png).
-
 
 ## Het bord toevoegen aan de gedeelde staat
 
@@ -300,9 +298,7 @@ We kunnen nu het aanmaken van het bord verwijderen uit de renderfunctie:
    ~H"""
    <Layouts.app flash={@flash}>
 
-     <%= if is_list(@board) do %>
-       <.board board={@board} />
-     <% end %>
+     <.board board={@board} />
 
    </Layouts.app>
    """
@@ -352,60 +348,71 @@ end
 
 ## Finishing touches
 
-Het spel is nu volledig speelbaar, maar we doen nog niets als het spel afgelopen is. Voeg een component `outcome` toe, die de uitkomst van een spel weergeeft, en plaats deze bovenaan de pagina als er een uitkomst is. Daarnaast kunnen we de `outcome` gebruiken om de knoppen uit te schakelen als het spel afgelopen is.
+Het spel is nu volledig speelbaar, maar we doen nog niets als het spel afgelopen is.
 
+In de render functie mogen we ook nog items toevoegen aan de `assigns`. Dit is handig als je een waarde afleidt van andere assigns. We gebruiken het hier om af te leiden wat de status van het spel is. We gebruiken dit om de huidige status van het spel weer te geven:
 
 ```diff
  def render(assigns) do
 +  assigns =
 +    assigns
-+    |> assign(:outcome, Game.result?(assigns.board))
-
- ~H"""
-  <Layouts.app flash={@flash}>
-+   <%= if @outcome do %>
-+     <.outcome outcome={@outcome} />
-+   <% end %>
-    <%= if is_list(@board) do %>
-      <.board board={@board} outcome={@outcome} />
-    <% end %>
-  </Layouts.app>
-  """
- end
-
-+ defp outcome(assigns) do
++    |> assign(
++      :status,
++      Game.result(assigns.board) || {:taking_turn, Game.active_player(assigns.board)}
++    )
 +
-+~H"""
-+<div class="mt-4 text-center text-lg font-semibold">
-+  <%= case @outcome do %>
-+    <% {:win, player} -> %>
-+      Winner: {player |> Atom.to_string() |> String.upcase()}
-+    <% :draw -> %>
-+      Draw
-+  <% end %>
-+</div>
-"""
-end
-
-defp board(assigns) do
-...
-              <td class="aspect-square">
-                <button
-                  phx-click="choose"
-                  phx-value-index={idx}
-                  disabled={not is_nil(@outcome) or not is_nil(Enum.at(@board, idx))}
-                >
-                  {cell_label(Enum.at(@board, idx) || @active_player)}
-                </button>
-...
+   ~H"""
+   <Layouts.app flash={@flash}>
++    <.status status={@status} />
+     <.board board={@board} status={@status} />
+     ...
+   </Layouts.app>
+   """
+ end
+ ...
++defp status(assigns) do
++  ~H"""
++  <div class="mt-4 text-center text-lg font-semibold">
++    {message(@status)}
++  </div>
++  """
++end
++
++defp message({:taking_turn, player}),
++  do: "#{player |> Atom.to_string() |> String.upcase()}'s turn"
++
++defp message({:win, player}), do: "Winner: #{player |> Atom.to_string() |> String.upcase()}"
++defp message(:draw), do: "Draw!"
 ```
 
+Daarnaast kunnen we de `status` gebruiken om de knoppen uit te schakelen als het spel afgelopen is.
+
+```diff
+ defp board(assigns) do
+   ...
+               <td class="aspect-square">
+                 <button
+                   type="button"
+                   phx-click="choose"
+                   class="btn"
+                   phx-value-index={idx}
+-                  disabled={not is_nil(Enum.at(@board, idx))}
++                  disabled={
++                    not match?({:taking_turn, _}, @status) or not is_nil(Enum.at(@board, idx))
++                  }
+                 >
+                   {cell_label(Enum.at(@board, idx) || @active_player)}
+                 </button>
+               </td>
+   ...
+```
 
 Om het spel helemaal af te maken, kun je ook nog een resetknop toevoegen. Hiervoor maken we gebruik van pattern matching om een tweede variant van de `handle_event` functie aan te maken:
 
 ```diff
  def handle_event("choose", params, socket) do
    ...
+ end
 
 +def handle_event("restart", _params, socket) do
 +  socket = assign(socket, :board, Game.empty_board())
@@ -414,30 +421,21 @@ Om het spel helemaal af te maken, kun je ook nog een resetknop toevoegen. Hiervo
 +end
 
  def render(assigns) do
-   assigns =
-     assigns
-     |> assign(:outcome, Game.result?(assigns.board))
-
-  ~H"""
-  <Layouts.app flash={@flash}>
-    <%= if @outcome do %>
-      <.outcome outcome={@outcome} />
-    <% end %>
-    <%= if is_list(@board) do %>
-      <.board board={@board} outcome={@outcome} />
-    <% end %>
-
-+   <button
-+     type="button"
-+     class="btn"
-+     phx-click="restart"
+   ...
+   ~H"""
+   <Layouts.app flash={@flash}>
+     <.status status={@status} />
+     <.board board={@board} status={@status} />
++    <button
++      type="button"
++      class="btn"
++      phx-click="restart"
 +    >
-+     Restart
-+   </button>
-  </Layouts.app>
-  """
-end
-
++      Restart
++    </button>
+   </Layouts.app>
+   """
+ end
 ```
 
 Je lokale multiplayer-versie van boter, kaas en eieren is hiermee klaar! Houd onze blog in de gaten voor de rest van deze serie en andere interessante content over app- en webdevelopment. Zijn er specifieke topics waar je meer over wilt weten? Laat het ons weten via het [contactformulier](https://www.yipyip.nl/contact).
