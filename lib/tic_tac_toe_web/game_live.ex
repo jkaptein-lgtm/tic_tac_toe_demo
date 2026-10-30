@@ -45,8 +45,6 @@ defmodule TicTacToeWeb.GameLive do
       |> assign(:board, board)
       |> assign(:status, status)
 
-    IO.inspect(board, label: "received board")
-
     {:noreply, socket}
   end
 
@@ -69,7 +67,7 @@ defmodule TicTacToeWeb.GameLive do
         {:error, error} ->
           message =
             case error do
-              :already_token -> "That location is already taken"
+              :already_taken -> "That location is already taken"
               :not_your_turn -> "It's not your turn!"
             end
 

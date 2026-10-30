@@ -1,13 +1,4 @@
 defmodule TicTacToe.GameServer do
-  @moduledoc """
-  Runs a game of tic tac toe
-
-  Clients are expected to handle the following messages:
-  {:progress, %{status: :you_lost | :you_won | :draw | :waiting | :your_turn | :other_turn, board: List(:o | :x | nil)}}
-  {:new_game, %{status: :waiting, board: List(:o | :x | nil), my_symbol: :x | :o }}
-
-  """
-
   use GenServer
 
   alias TicTacToe.Game
@@ -97,7 +88,7 @@ defmodule TicTacToe.GameServer do
           {:reply, {:ok, state}, state}
 
         :error ->
-          {:reply, {:error, :already_chosen}, state}
+          {:reply, {:error, :already_token}, state}
       end
     end
   end
@@ -130,7 +121,7 @@ defmodule TicTacToe.GameServer do
       send(
         player,
         {:new_game,
-         %{status: :waiting, board: state.board, my_symbol: pid_to_symbol(state.players, pid)}}
+         %{status: :waiting, board: state.board, my_symbol: pid_to_symbol(state.players, player)}}
       )
     end)
 
