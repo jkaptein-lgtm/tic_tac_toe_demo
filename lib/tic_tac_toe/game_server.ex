@@ -33,10 +33,6 @@ defmodule TicTacToe.GameServer do
     GenServer.cast(__MODULE__, {:disconnect, self()})
   end
 
-  def kill() do
-    GenServer.stop(__MODULE__)
-  end
-
   @impl true
   def init(_) do
     {:ok, %{players: [], board: [nil, nil, nil, nil, nil, nil, nil, nil, nil]}}
@@ -93,7 +89,7 @@ defmodule TicTacToe.GameServer do
           state = state |> Map.put(:board, board) |> Map.put(:status, :other_turn)
 
           state =
-            case Game.result?(board) do
+            case Game.result(board) do
               nil -> activate_players(state)
               result -> announce_result(state, result)
             end
